@@ -21,6 +21,15 @@ class TeltonikaHexParser
 
     timestamp = hex_data[hex_index_8e + 4, 16].to_i(16) / 1000.0
 
+    longitude_hex = hex_data[hex_index_8e + 22, 8]
+    latitude_hex = hex_data[hex_index_8e + 30, 8]
+    longitude_dec = longitude_hex.to_i(16)
+    latitude_dec = latitude_hex.to_i(16)
+    longitude_dec -= 2**32 if longitude_dec >= 2**31
+    latitude_dec -= 2**32 if latitude_dec >= 2**31
+    longitude = longitude_dec / 10.0**7
+    latitude = latitude_dec / 10.0**7
+
     sensor_data_start = hex_data.rindex('2c35')
 
     raise StandardError.new('Header 2c35 (AVL ID 11317) are not found') if sensor_data_start.nil?
@@ -57,6 +66,8 @@ class TeltonikaHexParser
       timestamp: timestamp,
       topic: @topic,
       status: 'SUCCESS',
+      latitude: latitude,
+      longitude: longitude,
       sensors: parsed_sensors,
       hex_data: hex_data
     }.to_json
